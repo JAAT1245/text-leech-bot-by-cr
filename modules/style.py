@@ -17,7 +17,7 @@ class Ashu(object):
 <b>"""
 
     T1_TEXT = """<b>🌄 ɴᴏᴡ sᴇɴᴅ ᴛʜᴇ ᴛʜᴜᴍʙ ᴜʀʟ
-Eg » `https://graph.org/file/698599feb76711fa080f6.jpg`
+Eg » `https://iili.io/2oialgS.jpg`
 
 ᴏʀ ɪғ ᴅᴏɴ'ᴛ ᴡᴀɴᴛ ᴛʜᴜᴍʙɴᴀɪʟ sᴇɴᴅ = `no`
 

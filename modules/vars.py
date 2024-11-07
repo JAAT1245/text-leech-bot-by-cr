@@ -1,13 +1,9 @@
 import os
-from dotenv import load_dotenv
-
-# Load environment variables from a .env file (if present)
-load_dotenv()
 
 # Read sensitive information from environment variables
-API_ID = os.environ.get("API_ID")
-API_HASH = os.environ.get("API_HASH")
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
+API_ID = os.environ.get("API_ID","24894984")
+API_HASH = os.environ.get("API_HASH","4956e23833905463efb588eb806f9804")
+BOT_TOKEN = os.environ.get("BOT_TOKEN","")
 
 # Validate that all critical variables are set
 if not API_ID or not API_HASH or not BOT_TOKEN:

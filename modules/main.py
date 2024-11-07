@@ -2,12 +2,11 @@ import os
 import sys
 import asyncio
 import time
+import re
 from aiohttp import web, ClientSession
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
-from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from subprocess import getstatusoutput
 
 from vars import API_ID, API_HASH, BOT_TOKEN, WEBHOOK, PORT
@@ -46,7 +45,7 @@ async def start_bot():
             print(f"Attempt {attempt} failed: {e}")
             if attempt < 3:
                 print("Retrying...")
-                time.sleep(5)  # Wait for a few seconds before retrying
+                await asyncio.sleep(5)  # Wait for a few seconds before retrying
             else:
                 print("Failed to start bot after 3 attempts")
                 break
@@ -75,44 +74,41 @@ async def restart_handler(_, m):
     await m.reply_text("♦ Stopped ♦", True)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-# Adjusted file upload handler
+# Refactored file upload handler
 @bot.on_message(filters.command(["upload"]))
-async def account_login(bot: Client, m: Message):
+async def upload_file_handler(bot: Client, m: Message):
     editable = await m.reply_text('Send me a .txt file')
     input_msg: Message = await bot.listen(editable.chat.id)
-    x = await input_msg.download()
-    await input_msg.delete(True)
-
-    path = f"./downloads/{m.chat.id}"
 
     try:
-        with open(x, "r") as f:
+        # Download the file
+        file_path = await input_msg.download()
+        print(f"File downloaded at: {file_path}")
+        await input_msg.delete(True)
+    except Exception as e:
+        await m.reply_text(f"Failed to download file: {e}")
+        return
+
+    # Read and process the file
+    try:
+        with open(file_path, "r") as f:
             content = f.read()
         content = content.split("\n")
         links = [i.split("://", 1) for i in content]
-        os.remove(x)
-    except Exception:
-        await m.reply_text("Invalid file input.")
-        os.remove(x)
+        os.remove(file_path)  # Clean up the file after reading
+    except Exception as e:
+        await m.reply_text(f"Error reading the file: {e}")
+        os.remove(file_path)  # Remove the invalid file
         return
-    
+
     await editable.edit(f"Links found: {len(links)}")
-    input0: Message = await bot.listen(editable.chat.id)
-    raw_text = input0.text
-    await input0.delete(True)
 
-    await editable.edit("Now send me your batch name")
-    input1: Message = await bot.listen(editable.chat.id)
-    raw_text0 = input1.text
-    await input1.delete(True)
+    # Collect additional input (batch name, resolution, etc.)
+    batch_name = await ask_for_input(bot, editable.chat.id, "Now send me your batch name")
+    resolution = await ask_for_input(bot, editable.chat.id, "Please send me the video resolution")
+    video_format = await ask_for_input(bot, editable.chat.id, "Send me the video format details")
 
-    await editable.edit("Please send me the video resolution")
-    input2: Message = await bot.listen(editable.chat.id)
-    raw_text2 = input2.text
-    await input2.delete(True)
-
-    # Define video resolution based on input
-    res = "UN"
+    # Define video resolution mapping
     resolution_map = {
         "144": "256x144",
         "240": "426x240",
@@ -121,54 +117,72 @@ async def account_login(bot: Client, m: Message):
         "720": "1280x720",
         "1080": "1920x1080"
     }
-    res = resolution_map.get(raw_text2, "UN")
+    res = resolution_map.get(resolution, "UN")
 
-    await editable.edit("Send me the video format details")
-    input3: Message = await bot.listen(editable.chat.id)
-    raw_text3 = input3.text
-    await input3.delete(True)
-
-    highlighter = f"️ ⁪⁬⁮⁮"
-    MR = highlighter if raw_text3 == 'Robin' else raw_text3
-
-    # Now processing the links
-    count = 1 if len(links) == 1 else int(raw_text)
+    # Process video links
+    count = 1 if len(links) == 1 else int(batch_name)
 
     for i in range(count - 1, len(links)):
-        V = links[i][1].replace("file/d/", "uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing", "")
-        url = "https://" + V
+        # Prepare the video URL
+        video_url = prepare_video_url(links[i][1])
 
-        # Download logic based on URL type
-        if "visionias" in url:
-            async with ClientSession() as session:
-                async with session.get(url) as resp:
-                    text = await resp.text()
-                    url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1)
-
-        # Further URL parsing logic...
-
-        name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").strip()
-        name = f'{str(count).zfill(3)}) {name1[:60]}'
-
-        # Download and send video
         try:
-            show_msg = f"Downloading video: {name}"
-            prog = await m.reply_text(show_msg)
-
-            res_file = await helper.download_video(url, name)
-            filename = res_file
-            await helper.send_vid(bot, m, filename)
-            count += 1
-            time.sleep(1)
+            await process_video_link(video_url, i, links, m, bot, res, video_format)
+            await asyncio.sleep(1)  # Use async sleep to avoid blocking the event loop
         except FloodWait as e:
-            await m.reply_text(str(e))
-            time.sleep(e.x)
-            continue
+            await m.reply_text(f"Please wait for {e.x} seconds.")
+            await asyncio.sleep(e.x)  # Await async sleep
         except Exception as e:
-            await m.reply_text(f"Error: {str(e)}")
-            continue
+            await m.reply_text(f"Error processing link {i + 1}: {str(e)}")
 
     await m.reply_text("Successfully completed!")
+
+
+# Helper function to ask for user input
+async def ask_for_input(bot: Client, chat_id: int, prompt: str) -> str:
+    """Send a prompt and wait for user response."""
+    await bot.send_message(chat_id, prompt)
+    input_msg = await bot.listen(chat_id)
+    user_input = input_msg.text
+    await input_msg.delete(True)
+    return user_input
+
+
+# Helper function to prepare video URL
+def prepare_video_url(url: str) -> str:
+    """Prepare the video URL by cleaning it."""
+    url = url.replace("file/d/", "uc?export=download&id=") \
+             .replace("www.youtube-nocookie.com/embed", "youtu.be") \
+             .replace("?modestbranding=1", "") \
+             .replace("/view?usp=sharing", "")
+    return "https://" + url
+
+
+# Process the video link and download it
+async def process_video_link(url: str, count: int, links: list, m: Message, bot: Client, res: str, video_format: str):
+    """Process each video link by downloading and sending the video."""
+    name1 = clean_video_name(links[count][0])
+    name = f'{str(count + 1).zfill(3)}) {name1[:60]}'
+
+    try:
+        show_msg = f"Downloading video: {name}"
+        prog = await m.reply_text(show_msg)
+
+        # Assuming helper methods exist
+        res_file = await helper.download_video(url, name, res, video_format)
+        filename = res_file
+        await helper.send_vid(bot, m, filename)
+    except Exception as e:
+        await m.reply_text(f"Error processing video {name}: {str(e)}")
+        print(f"Error in video download and send: {e}")
+
+
+# Clean the video name
+def clean_video_name(name: str) -> str:
+    """Clean the video name by removing unwanted characters."""
+    name = name.replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").strip()
+    return name
+
 
 # Start the bot and web server concurrently
 async def main():

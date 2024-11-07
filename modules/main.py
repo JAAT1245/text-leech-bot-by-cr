@@ -10,8 +10,7 @@ from pyrogram.errors import FloodWait
 from subprocess import getstatusoutput
 
 from vars import API_ID, API_HASH, BOT_TOKEN, WEBHOOK, PORT
-from style import Ashu
-import helper  # Assuming `helper` handles various utility functions
+from style import Ashu 
 
 # Initialize the bot with increased sqlite_timeout
 bot = Client(

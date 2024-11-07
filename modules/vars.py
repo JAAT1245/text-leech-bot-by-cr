@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Read sensitive information from environment variables
-API_ID = os.environ.get("24894984", None)
-API_HASH = os.environ.get("4956e23833905463efb588eb806f9804", None)
-BOT_TOKEN = os.environ.get("BOT_TOKEN", None)
+API_ID = os.environ.get("API_ID")
+API_HASH = os.environ.get("API_HASH")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 # Validate that all critical variables are set
 if not API_ID or not API_HASH or not BOT_TOKEN:

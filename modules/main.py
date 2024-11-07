@@ -1,16 +1,18 @@
 import os
 import sys
 import asyncio
-import time
-import re
-from aiohttp import web, ClientSession
+import logging
+from aiohttp import web
 from pyrogram import Client, filters
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait
 from subprocess import getstatusoutput
-
 from vars import API_ID, API_HASH, BOT_TOKEN, WEBHOOK, PORT
-from style import Ashu 
+from style import Ashu  # Custom style (Ensure you have this file)
+
+# Set up logging for better error handling
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Initialize the bot with increased sqlite_timeout
 bot = Client(
@@ -26,7 +28,7 @@ routes = web.RouteTableDef()
 
 @routes.get("/", allow_head=True)
 async def root_route_handler(request):
-    return web.json_response("https://github.com/AshutoshGoswami24")
+    return web.json_response({"message": "GitHub Repository", "url": "https://github.com/AshutoshGoswami24"})
 
 async def web_server():
     web_app = web.Application(client_max_size=30000000)
@@ -41,12 +43,12 @@ async def start_bot():
             break
         except Exception as e:
             attempt += 1
-            print(f"Attempt {attempt} failed: {e}")
+            logger.error(f"Attempt {attempt} failed: {e}")
             if attempt < 3:
-                print("Retrying...")
-                await asyncio.sleep(5)  # Wait for a few seconds before retrying
+                logger.info("Retrying...")
+                await asyncio.sleep(5)
             else:
-                print("Failed to start bot after 3 attempts")
+                logger.error("Failed to start bot after 3 attempts")
                 break
 
 async def start_web():
@@ -55,17 +57,17 @@ async def start_web():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", PORT)
     await site.start()
+    logger.info(f"Web server started on port {PORT}")
 
-# Bot handlers
+# Bot Handlers
 @bot.on_message(filters.command(["start"]))
 async def account_login(bot: Client, m: Message):
     await m.reply_text(
-       Ashu.START_TEXT, reply_markup=InlineKeyboardMarkup(
-            [
-                [InlineKeyboardButton("✜ TERA BAAP CR CHOUDHARY ✜", url="https://t.me/Targetallcourse")],
-                [InlineKeyboardButton("🦋 Follow Me 🦋", url="https://t.me/targetallcourse")]
-            ]
-        )
+        Ashu.START_TEXT, 
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("✜ TERA BHAI CR CHOUDHARY ✜", url="https://t.me/Targetallcourse")],
+            [InlineKeyboardButton("🦋 Follow Me 🦋", url="https://t.me/targetallcourse")]
+        ])
     )
 
 @bot.on_message(filters.command("stop"))
@@ -79,10 +81,11 @@ async def upload_file_handler(bot: Client, m: Message):
     editable = await m.reply_text('Send me a .txt file')
     input_msg: Message = await bot.listen(editable.chat.id)
 
+    file_path = None
     try:
         # Download the file
         file_path = await input_msg.download()
-        print(f"File downloaded at: {file_path}")
+        logger.info(f"File downloaded at: {file_path}")
         await input_msg.delete(True)
     except Exception as e:
         await m.reply_text(f"Failed to download file: {e}")
@@ -91,13 +94,13 @@ async def upload_file_handler(bot: Client, m: Message):
     # Read and process the file
     try:
         with open(file_path, "r") as f:
-            content = f.read()
-        content = content.split("\n")
+            content = f.read().split("\n")
         links = [i.split("://", 1) for i in content]
         os.remove(file_path)  # Clean up the file after reading
     except Exception as e:
         await m.reply_text(f"Error reading the file: {e}")
-        os.remove(file_path)  # Remove the invalid file
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
         return
 
     await editable.edit(f"Links found: {len(links)}")
@@ -107,7 +110,6 @@ async def upload_file_handler(bot: Client, m: Message):
     resolution = await ask_for_input(bot, editable.chat.id, "Please send me the video resolution")
     video_format = await ask_for_input(bot, editable.chat.id, "Send me the video format details")
 
-    # Define video resolution mapping
     resolution_map = {
         "144": "256x144",
         "240": "426x240",
@@ -122,7 +124,6 @@ async def upload_file_handler(bot: Client, m: Message):
     count = 1 if len(links) == 1 else int(batch_name)
 
     for i in range(count - 1, len(links)):
-        # Prepare the video URL
         video_url = prepare_video_url(links[i][1])
 
         try:
@@ -133,9 +134,9 @@ async def upload_file_handler(bot: Client, m: Message):
             await asyncio.sleep(e.x)  # Await async sleep
         except Exception as e:
             await m.reply_text(f"Error processing link {i + 1}: {str(e)}")
+            logger.error(f"Error in processing link {i + 1}: {e}")
 
     await m.reply_text("Successfully completed!")
-
 
 # Helper function to ask for user input
 async def ask_for_input(bot: Client, chat_id: int, prompt: str) -> str:
@@ -146,7 +147,6 @@ async def ask_for_input(bot: Client, chat_id: int, prompt: str) -> str:
     await input_msg.delete(True)
     return user_input
 
-
 # Helper function to prepare video URL
 def prepare_video_url(url: str) -> str:
     """Prepare the video URL by cleaning it."""
@@ -155,7 +155,6 @@ def prepare_video_url(url: str) -> str:
              .replace("?modestbranding=1", "") \
              .replace("/view?usp=sharing", "")
     return "https://" + url
-
 
 # Process the video link and download it
 async def process_video_link(url: str, count: int, links: list, m: Message, bot: Client, res: str, video_format: str):
@@ -173,29 +172,22 @@ async def process_video_link(url: str, count: int, links: list, m: Message, bot:
         await helper.send_vid(bot, m, filename)
     except Exception as e:
         await m.reply_text(f"Error processing video {name}: {str(e)}")
-        print(f"Error in video download and send: {e}")
-
+        logger.error(f"Error in video download and send: {e}")
 
 # Clean the video name
 def clean_video_name(name: str) -> str:
     """Clean the video name by removing unwanted characters."""
-    name = name.replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").strip()
-    return name
-
+    return re.sub(r'[^\w\s-]', '', name).strip()  # Allow only letters, numbers, spaces, and hyphens
 
 # Start the bot and web server concurrently
 async def main():
     if WEBHOOK:
         # Start the web server
-        app = await web_server()
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", PORT)
-        await site.start()
-        print(f"Web server started on port {PORT}")
+        await start_web()
+        logger.info(f"Web server started on port {PORT}")
 
 if __name__ == "__main__":
-    print("""
+    logger.info("""
     █░█░█ █▀█ █▀█ █▀▄ █▀▀ █▀█ ▄▀█ █▀▀ ▀█▀
     ▀▄▀▄▀ █▄█ █▄█ █▄▀ █▄▄ █▀▄ █▀█ █▀░ ░█░
     """)

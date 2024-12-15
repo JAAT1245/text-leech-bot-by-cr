@@ -28,7 +28,7 @@ routes = web.RouteTableDef()
 
 @routes.get("/", allow_head=True)
 async def root_route_handler(request):
-    return web.json_response({"message": "GitHub Repository", "url": "https://github.com/AshutoshGoswami24"})
+    return web.json_response({"message": "GitHub Repository", "url": "https://"})
 
 async def web_server():
     web_app = web.Application(client_max_size=30000000)

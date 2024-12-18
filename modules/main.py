@@ -181,10 +181,28 @@ async def account_login(bot: Client, m: Message):
 
             try:  
                 
-                cc = f'**[ 🎥 ] Vid_ID:** {str(count).zfill(3)}.** {𝗻𝗮𝗺𝗲𝟭}{MR}.mkv\n✉️ 𝐁𝐚𝐭𝐜𝐡 » **{raw_text0}**'
-                cc1 = f'**[ 📁 ] Pdf_ID:** {str(count).zfill(3)}. {𝗻𝗮𝗺𝗲𝟭}{MR}.pdf \n✉️ 𝐁𝐚𝐭𝐜𝐡 » **{raw_text0}**'
-                if "drive" in url:
-                    try:
+                cc = f"""╭━━━━━━━━━━━━━━━━━━━━━╮
+💫 **VIDEO ID** : {str(count).zfill(3)}
+╰━━━━━━━━━━━━━━━━━━━━━╮
+📁 **TITLE** : {name1} ({res})
+
+📚 **COURSE** : {raw_text0}  
+📥 **DOWNLOADED BY** : {raw_text3}
+
+🔗 [**JOIN THE CHANNEL**](https://t.me/TARGETALLCOURSE)
+"""
+            cc1 = f"""╭━━━━━━━━━━━━━━━━━━━━━╮
+💫 **PDF ID** : {str(count).zfill(3)}
+╰━━━━━━━━━━━━━━━━━━━━━╮
+📁 **TITLE** : {name1}
+
+📚 **COURSE** : {raw_text0}  
+📥 **DOWNLOADED BY** : {raw_text3}
+
+🔗 [**JOIN THE CHANNEL**](https://t.me/targetallcourse)
+"""
+            if drive in url:
+            try:
                         ka = await helper.download(url, name)
                         copy = await bot.send_document(chat_id=m.chat.id,document=ka, caption=cc1)
                         count+=1

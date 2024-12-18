@@ -53,6 +53,7 @@ async def account_login(bot: Client, m: Message):
                     [
                     InlineKeyboardButton("🦋 ᴄʀ ᴄʜᴏᴜᴅʜᴀʀʏ 🦋" ,url="https://t.me/free_course2_bot") ]                               
             ]))
+
 @bot.on_message(filters.command("stop"))
 async def restart_handler(_, m):
     await m.reply_text("♦ 𝐒𝐭𝐨𝐩𝐩𝐞𝐭 ♦", True)
@@ -162,6 +163,15 @@ async def account_login(bot: Client, m: Message):
             name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
             name = f'{str(count).zfill(3)}) {name1[:60]}'
 
+            # Handle PDF download
+            if ".pdf" in url:
+                filename = sanitize_filename(name) + ".pdf"
+                download_pdf(url, filename)
+                copy = await bot.send_document(chat_id=m.chat.id, document=filename, caption=cc1)
+                os.remove(filename)
+                count += 1
+                continue
+
             if "youtu" in url:
                 ytf = f"b[height<={raw_text2}][ext=mp4]/bv[height<={raw_text2}][ext=mp4]+ba[ext=m4a]/b[ext=mp4]"
             else:
@@ -206,70 +216,29 @@ async def account_login(bot: Client, m: Message):
                         time.sleep(e.x)
                         continue
                 
-                elif ".pdf" in url:
-                    try:
-                        cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
-                        download_cmd = f"{cmd} -R 25 --fragment-retries 25"
-                        os.system(download_cmd)
-                        copy = await bot.send_document(chat_id=m.chat.id, document=f'{name}.pdf', caption=cc1)
-                        count += 1
-                        os.remove(f'{name}.pdf')
-                    except FloodWait as e:
-                        await m.reply_text(str(e))
-                        time.sleep(e.x)
-                        continue
                 else:
                     Show = f"❊⟱ 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 ⟱❊ »\n\n📝 𝐍𝐚𝐦𝐞 » `{name}\n⌨ 𝐐𝐮𝐥𝐢𝐭𝐲 » {raw_text2}`\n\n**🔗 𝐔𝐑𝐋 »** `{url}`"
                     prog = await m.reply_text(Show)
                     res_file = await helper.download_video(url, cmd, name)
                     filename = res_file
                     await prog.delete(True)
-                    await helper.send_vid(bot, m, cc, filename, thumb, name, prog)
-                    count += 1
-                    time.sleep(1)
-
-            except Exception as e:
-                await m.reply_text(
-                    f"⌘ 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n{str(e)}\n⌘ 𝐍𝐚𝐦𝐞 » {name}\n⌘ 𝐋𝐢𝐧𝐤 » `{url}`"
-                )
-                continue
-
+                    await helper.send_vid(bot, m, cc, filename, thumb, name, copy, cc1, count)
     except Exception as e:
-        await m.reply_text(e)
-    await m.reply_text("✅ 𝐒𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥𝐥𝐲 𝐃𝐨𝐧𝐞")
+        print(e)
 
-async def main():
-    if WEBHOOK:
-        # Start the web server
-        app = await web_server()
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", PORT)
-        await site.start()
-        print(f"Web server started on port {PORT}")
-
-if __name__ == "__main__":
-    print("""
-    █░█░█ █▀█ █▀█ █▀▄ █▀▀ █▀█ ▄▀█ █▀▀ ▀█▀     ▄▀█ █▀ █░█ █░█ ▀█▀ █▀█ █▀ █░█   
-    ▀▄▀▄▀ █▄█ █▄█ █▄▀ █▄▄ █▀▄ █▀█ █▀░ ░█░     █▀█ ▄█ █▀█ █▄█ ░█░ █▄█ ▄█ █▀█ """)
-
-    # Start the bot and web server concurrently
-    async def start_bot():
-        await bot.start()
-
-    async def start_web():
-        await main()
-
-    loop = asyncio.get_event_loop()
+def download_pdf(url, filename):
     try:
-        # Create tasks to run bot and web server concurrently
-        loop.create_task(start_bot())
-        loop.create_task(start_web())
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with open(filename, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return filename
+    except Exception as e:
+        print(f"Error downloading PDF: {e}")
+        return None
 
-        # Keep the main thread running until all tasks are complete
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # Cleanup
-        loop.stop()
+def sanitize_filename(name):
+    return re.sub(r'[<>:"/\\|?*]', '', name)  # Remove invalid characters
+
+bot.run()  # Run the bot

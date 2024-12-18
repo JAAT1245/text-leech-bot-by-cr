@@ -179,8 +179,14 @@ async def account_login(bot: Client, m: Message):
             else:
                 cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
 
-            try:  
-                
+            
+                        ka = await helper.download(url, name)
+                        copy = await bot.send_document(chat_id=m.chat.id,document=ka, caption=cc1)
+                        count+=1
+                        os.remove(ka)
+                        time.sleep(1)
+                    except FloodWait as e:
+               try:  
                 cc = f"""╭━━━━━━━━━━━━━━━━━━━━━╮
 💫 **VIDEO ID** : {str(count).zfill(3)}
 ╰━━━━━━━━━━━━━━━━━━━━━╮
@@ -191,7 +197,7 @@ async def account_login(bot: Client, m: Message):
 
 🔗 [**JOIN THE CHANNEL**](https://t.me/TARGETALLCOURSE)
 """
-            cc1 = f"""╭━━━━━━━━━━━━━━━━━━━━━╮
+                cc1 = f"""╭━━━━━━━━━━━━━━━━━━━━━╮
 💫 **PDF ID** : {str(count).zfill(3)}
 ╰━━━━━━━━━━━━━━━━━━━━━╮
 📁 **TITLE** : {name1}
@@ -201,14 +207,8 @@ async def account_login(bot: Client, m: Message):
 
 🔗 [**JOIN THE CHANNEL**](https://t.me/targetallcourse)
 """
-            if drive in url:
-            try:
-                        ka = await helper.download(url, name)
-                        copy = await bot.send_document(chat_id=m.chat.id,document=ka, caption=cc1)
-                        count+=1
-                        os.remove(ka)
-                        time.sleep(1)
-                    except FloodWait as e:
+                if drive in url:
+                    try:
                         await m.reply_text(str(e))
                         time.sleep(e.x)
                         continue

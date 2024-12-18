@@ -19,6 +19,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
 from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
+from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from style import Ashu 
 
@@ -45,13 +46,13 @@ async def web_server():
 @bot.on_message(filters.command(["start"]))
 async def account_login(bot: Client, m: Message):
     await m.reply_text(
-        Ashu.START_TEXT, reply_markup=InlineKeyboardMarkup(
+       Ashu.START_TEXT, reply_markup=InlineKeyboardMarkup(
             [
-                [InlineKeyboardButton("✜ JOIN MY CHANNEL  ✜", url="https://t.me/TARGETALLCOURSE")],
-                [InlineKeyboardButton("🦋 BUY ANY COURSE 🦋", url="https://t.me/FREE_COURSE2_BOT")]
-            ]
-        ))
-
+                    [
+                    InlineKeyboardButton("✜ J̳O̳I̳N̳ ̳M̳Y̳ ̳C̳H̳A̳N̳N̳E̳L̳ ✜" ,url="https://t.me/TARGETALLCOURSE") ],
+                    [
+                    InlineKeyboardButton("🦋 ᴄʀ ᴄʜᴏᴜᴅʜᴀʀʏ 🦋" ,url="https://t.me/free_course2_bot") ]                               
+            ]))
 @bot.on_message(filters.command("stop"))
 async def restart_handler(_, m):
     await m.reply_text("♦ 𝐒𝐭𝐨𝐩𝐩𝐞𝐭 ♦", True)
@@ -67,19 +68,19 @@ async def account_login(bot: Client, m: Message):
     path = f"./downloads/{m.chat.id}"
 
     try:
-        with open(x, "r") as f:
-            content = f.read()
-        content = content.split("\n")
-        links = []
-        for i in content:
-            links.append(i.split("://", 1))
-        os.remove(x)
+       with open(x, "r") as f:
+           content = f.read()
+       content = content.split("\n")
+       links = []
+       for i in content:
+           links.append(i.split("://", 1))
+       os.remove(x)
     except:
-        await m.reply_text("∝ 𝐈𝐧𝐯𝐚𝐥𝐢𝐝 𝐟𝐢𝐥𝐞 𝐢𝐧𝐩𝐮𝐭.")
-        os.remove(x)
-        return
-
-    await editable.edit(f"ɪɴ ᴛxᴛ ғɪʟᴇ ᴛɪᴛʟᴇ ʟɪɴᴋ 🔗 **{len(links)}**\n\nsᴇɴᴅ ғʀᴏᴍ  ᴡʜᴇʀᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ɪɴɪᴛᴀʟ ɪs `1`")
+           await m.reply_text("∝ 𝐈𝐧𝐯𝐚𝐥𝐢𝐝 𝐟𝐢𝐥𝐞 𝐢𝐧𝐩𝐮𝐭.")
+           os.remove(x)
+           return
+    
+    await editable.edit(f"ɪɴ ᴛxᴛ ғɪʟᴇ ᴛɪᴛʟᴇ ʟɪɴᴋ 🔗** **{len(links)}**\n\nsᴇɴᴅ ғʀᴏᴍ  ᴡʜᴇʀᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ɪɴɪᴛᴀʟ ɪs `1`")
     input0: Message = await bot.listen(editable.chat.id)
     raw_text = input0.text
     await input0.delete(True)
@@ -88,12 +89,11 @@ async def account_login(bot: Client, m: Message):
     input1: Message = await bot.listen(editable.chat.id)
     raw_text0 = input1.text
     await input1.delete(True)
-
+    
     await editable.edit(Ashu.Q1_TEXT)
     input2: Message = await bot.listen(editable.chat.id)
     raw_text2 = input2.text
     await input2.delete(True)
-
     try:
         if raw_text2 == "144":
             res = "256x144"
@@ -106,22 +106,22 @@ async def account_login(bot: Client, m: Message):
         elif raw_text2 == "720":
             res = "1280x720"
         elif raw_text2 == "1080":
-            res = "1920x1080"
-        else:
+            res = "1920x1080" 
+        else: 
             res = "UN"
     except Exception:
-        res = "UN"
-
+            res = "UN"
+    
     await editable.edit(Ashu.C1_TEXT)
     input3: Message = await bot.listen(editable.chat.id)
     raw_text3 = input3.text
     await input3.delete(True)
     highlighter = f"️ ⁪⁬⁮⁮⁮"
     if raw_text3 == 'Robin':
-        MR = highlighter
+        MR = highlighter 
     else:
         MR = raw_text3
-
+   
     await editable.edit(Ashu.T1_TEXT)
     input6 = message = await bot.listen(editable.chat.id)
     raw_text6 = input6.text
@@ -143,7 +143,7 @@ async def account_login(bot: Client, m: Message):
     try:
         for i in range(count - 1, len(links)):
 
-            V = links[i][1].replace("file/d/", "uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing", "")
+            V = links[i][1].replace("file/d/","uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing","") 
             url = "https://" + V
 
             if "visionias" in url:
@@ -153,17 +153,11 @@ async def account_login(bot: Client, m: Message):
                         url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1)
 
             elif 'videos.classplusapp' in url:
-                url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': 'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6MzgzNjkyMTIsIm9yZ0lkIjoyNjA1LCJ0eXBlIjoxLCJtb2JpbGUiOiI5MTcwODI3NzQyODkiLCJ...
+                url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': 'your-token'}).json()['url']
+
             elif '/master.mpd' in url:
-                id = url.split("/")[-2]
-                url = requests.get(
-    f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', 
-    headers={
-        'x-access-token': 'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6MzgzNjkyMTIsIm9yZ0lkIjoyNjA1LCJ0eXBlIjoxLCJtb2JpbGUiOiI5MTcwODI3NzQyODkiLCJ'
-        'lbmFtZSI6IkFjZSIsImVtYWlsIjpudWxsLCJpc0ZpcnN0TG9naW4iOnRydWUsImRlZmF1bHRMYW5ndWFnZSI6bnVsbCwiY291bnRyeUNvZGUiOiJJTiwiaXNJbnRlcm5hdGlvbmFsIjowLCJpYXQiOjE2NDMyODE4NzcsImV4cCI6MTY0Mzg4NjY3N30.hM33P2ai6ivdzxPPfm01LAd4JWv-vnrSxGXqvCirCSpUfhhofpeqyeHPxtstXwe0'
-    }
-).json()['url']
-                
+                id =  url.split("/")[-2]
+                url =  "https://d26g5bnklkwsh4.cloudfront.net/" + id + "/master.m3u8"
 
             name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
             name = f'{str(count).zfill(3)}) {name1[:60]}'
@@ -178,14 +172,7 @@ async def account_login(bot: Client, m: Message):
             else:
                 cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
 
-            ka = await helper.download(url, name)
-            copy = await bot.send_document(chat_id=m.chat.id, document=ka, caption=cc1)
-            count += 1
-            os.remove(ka)
-            time.sleep(1)
-
-        except FloodWait as e:
-            try:
+            try:  
                 cc = f"""╭━━━━━━━━━━━━━━━━━━━━━╮
     💫 **VIDEO ID** : {str(count).zfill(3)}
     ╰━━━━━━━━━━━━━━━━━━━━━╮
@@ -206,12 +193,19 @@ async def account_login(bot: Client, m: Message):
 
     🔗 [**JOIN THE CHANNEL**](https://t.me/targetallcourse)
     """
-                if drive in url:
+
+                if "drive" in url:
                     try:
+                        ka = await helper.download(url, name)
+                        copy = await bot.send_document(chat_id=m.chat.id, document=ka, caption=cc1)
+                        count += 1
+                        os.remove(ka)
+                        time.sleep(1)
+                    except FloodWait as e:
                         await m.reply_text(str(e))
                         time.sleep(e.x)
                         continue
-
+                
                 elif ".pdf" in url:
                     try:
                         cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
@@ -234,11 +228,11 @@ async def account_login(bot: Client, m: Message):
                     count += 1
                     time.sleep(1)
 
-    except Exception as e:
-        await m.reply_text(
-            f"⌘ 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n{str(e)}\n⌘ 𝐍𝐚𝐦𝐞 » {name}\n⌘ 𝐋𝐢𝐧𝐤 » `{url}`"
-        )
-        continue
+            except Exception as e:
+                await m.reply_text(
+                    f"⌘ 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n{str(e)}\n⌘ 𝐍𝐚𝐦𝐞 » {name}\n⌘ 𝐋𝐢𝐧𝐤 » `{url}`"
+                )
+                continue
 
     except Exception as e:
         await m.reply_text(e)
